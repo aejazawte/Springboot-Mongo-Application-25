@@ -54,7 +54,7 @@ pipeline
             {
 				//Build_Tag - To Be Added in Manifest File RegistryURL/java-maven-application:Build_Tag
 				//Build_Number - Parameterised Build Number.
-				sh "sed -i 's/Build_Tag/${Build_Number}/g' SpringBootMongo.yaml"
+				sh "sed -i 's|Build_Tag|admaejaz/java-maven-application:${Build_Number}|g' SpringBootMongo.yaml"
             }
         }
 		
