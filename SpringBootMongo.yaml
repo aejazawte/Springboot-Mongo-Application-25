@@ -12,7 +12,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      name: spring-pod
       labels:
         application: springbootmongo
     spec:
@@ -28,9 +27,25 @@ spec:
           limits:
             cpu: 400m
             memory: 512Mi
+        readinessProbe:
+          httpGet:
+            path: /actuator/health   # or "/" if Actuator not enabled
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
         env:
         - name: MONGO_DB_HOSTNAME
-          value: mongo-service #MongoDB Service Name
+          value: mongo-service
         - name: MONGO_DB_USERNAME
           value: prod
         - name: MONGO_DB_PASSWORD
@@ -42,18 +57,19 @@ metadata:
   name: springboot-service
   namespace: prod
 spec:
-  type: NodePort
+  type: NodePort  # if self managed k8s cluster
   selector:
     application: springbootmongo
   ports:
   - port: 80
     targetPort: 8080
+    NodePort: 32000
 ---
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
-   name: mongo-replicaset
-   namespace: prod
+  name: mongo-deployment
+  namespace: prod
 spec:
   replicas: 1
   selector:
@@ -61,7 +77,6 @@ spec:
       application: mongo
   template:
     metadata:
-      name: mongo-pod
       labels:
         application: mongo
     spec:
@@ -75,11 +90,16 @@ spec:
           value: prod
         - name: MONGO_INITDB_ROOT_PASSWORD
           value: prod@123
+      volumes:
+      - name: mongovol
+        nfs:
+          server: 13.233.149.68
+          path: /mnt/nfs_share
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-service #Service Name Should be Given for MONGO_DB_HOSTNAME
+  name: mongo-service
   namespace: prod
 spec:
   type: ClusterIP
