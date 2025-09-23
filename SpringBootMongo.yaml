@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-deployment
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: springbootmongo
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        application: springbootmongo
+    spec:
+      containers:
+      - name: spring-container
+        image: "Build_Tag"
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+        env:
+        - name: MONGO_DB_HOSTNAME
+          value: mongo-service
+        - name: MONGO_DB_USERNAME
+          value: prod
+        - name: MONGO_DB_PASSWORD
+          value: prod@123
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-service
+  namespace: prod
+spec:
+  type: NodePort  # if self managed k8s cluster
+  selector:
+    application: springbootmongo
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 32000
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: mongo-replicaset
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: mongo
+  template:
+    metadata:
+      labels:
+        application: mongo
+    spec:
+      containers:
+      - name: mongo-container
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: prod
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: prod@123
+      volumeMounts:
+      - name: mongovol
+	mountPath: /data/db
+      volumes:
+      - name: mongovol
+        persistentVolumeClaim:
+	  claimName: mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+  namespace: prod
+spec:
+  type: ClusterIP
+  selector:
+    application: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017
