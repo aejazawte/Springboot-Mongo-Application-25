@@ -12,12 +12,13 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      name: spring-pod
       labels:
         application: springbootmongo
     spec:
       containers:
       - name: spring-container
-        image: "admaejaz/java-maven-application:13"
+        image: "Build_Tag"
         ports:
         - containerPort: 8080
         resources:
@@ -29,11 +30,11 @@ spec:
             memory: 512Mi
         env:
         - name: MONGO_DB_HOSTNAME
-          value: mongo-service
+          value: mongo-service #MongoDB Service Name
         - name: MONGO_DB_USERNAME
-          value: prod
+          value: production
         - name: MONGO_DB_PASSWORD
-          value: prod@123
+          value: production@123
 ---
 apiVersion: v1
 kind: Service
@@ -41,7 +42,7 @@ metadata:
   name: springboot-service
   namespace: prod
 spec:
-  type: NodePort   # change to LoadBalancer if using cloud
+  type: NodePort
   selector:
     application: springbootmongo
   ports:
@@ -52,8 +53,8 @@ spec:
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: mongo-replicaset
-  namespace: prod
+   name: mongo-replicaset
+   namespace: prod
 spec:
   replicas: 1
   selector:
@@ -61,31 +62,32 @@ spec:
       application: mongo
   template:
     metadata:
+      name: mongo-pod
       labels:
         application: mongo
     spec:
       containers:
       - name: mongo-container
-        image: mongo:6
+        image: mongo
         ports:
         - containerPort: 27017
         env:
         - name: MONGO_INITDB_ROOT_USERNAME
-          value: prod
+          value: production
         - name: MONGO_INITDB_ROOT_PASSWORD
-          value: prod@123
-        volumeMounts:
-        - name: mongovol
-          mountPath: /data/db
+          value: production@123
+	volumeMounts:
+	- name: mongovol
+	  mountPath: /data/db
       volumes:
       - name: mongovol
-        persistentVolumeClaim:
+	persistentVolumeClaim: 
           claimName: mongo-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-service
+  name: mongo-service #Service Name Should be Given for MONGO_DB_HOSTNAME
   namespace: prod
 spec:
   type: ClusterIP
@@ -94,5 +96,3 @@ spec:
   ports:
   - port: 27017
     targetPort: 27017
-    
-
