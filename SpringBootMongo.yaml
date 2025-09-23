@@ -74,11 +74,13 @@ spec:
           value: prod
         - name: MONGO_INITDB_ROOT_PASSWORD
           value: prod@123
+      volumeMounts:
+      - name: mongovol
+	mountPath: /data/db
       volumes:
       - name: mongovol
-        nfs:
-          server: 13.233.149.68
-          path: /mnt/nfs_share
+        persistentVolumeClaim:
+	  claimName: mongo-pvc
 ---
 apiVersion: v1
 kind: Service
