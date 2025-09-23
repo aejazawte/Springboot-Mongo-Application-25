@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: spring-container
-        image: "Build_Tag"
+        image: "admaejaz/java-maven-application:13"
         ports:
         - containerPort: 8080
         resources:
@@ -41,7 +41,7 @@ metadata:
   name: springboot-service
   namespace: prod
 spec:
-  type: NodePort  # if self managed k8s cluster
+  type: NodePort   # change to LoadBalancer if using cloud
   selector:
     application: springbootmongo
   ports:
@@ -66,7 +66,7 @@ spec:
     spec:
       containers:
       - name: mongo-container
-        image: mongo
+        image: mongo:6
         ports:
         - containerPort: 27017
         env:
@@ -74,13 +74,13 @@ spec:
           value: prod
         - name: MONGO_INITDB_ROOT_PASSWORD
           value: prod@123
-      volumeMounts:
-      - name: mongovol
-	mountPath: /data/db
+        volumeMounts:
+        - name: mongovol
+          mountPath: /data/db
       volumes:
       - name: mongovol
         persistentVolumeClaim:
-	  claimName: mongo-pvc
+          claimName: mongo-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -94,3 +94,5 @@ spec:
   ports:
   - port: 27017
     targetPort: 27017
+    
+
