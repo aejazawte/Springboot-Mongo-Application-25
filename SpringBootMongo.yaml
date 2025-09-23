@@ -29,18 +29,18 @@ spec:
             memory: 512Mi
         readinessProbe:
           httpGet:
-            path: /actuator/health   # or "/" if Actuator not enabled
+            path: /   # or "/" if Actuator not enabled
             port: 8080
-          initialDelaySeconds: 20
+          initialDelaySeconds: 10
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         livenessProbe:
           httpGet:
-            path: /actuator/health
+            path: /
             port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 20
+          initialDelaySeconds: 10
+          periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         env:
