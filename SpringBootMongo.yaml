@@ -4,7 +4,7 @@ metadata:
   name: springboot-deployment
   namespace: prod
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       application: springbootmongo
@@ -17,24 +17,24 @@ spec:
         application: springbootmongo
     spec:
       containers:
-        - name: spring-container
-          image: "Build_Tag"
-          ports:
-            - containerPort: 8080
-          resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
-            limits:
-              cpu: 400m
-              memory: 512Mi
-          env:
-            - name: MONGO_DB_HOSTNAME
-              value: mongo-service #MongoDB Service Name
-            - name: MONGO_DB_USERNAME
-              value: production
-            - name: MONGO_DB_PASSWORD
-              value: production@123
+      - name: spring-container
+        image: "Image_Tag"
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+        env:
+        - name: MONGO_DB_HOSTNAME
+          value: mongo-service #MongoDB Service Name
+        - name: MONGO_DB_USERNAME
+          value: prod
+        - name: MONGO_DB_PASSWORD
+          value: prod@123
 ---
 apiVersion: v1
 kind: Service
@@ -46,15 +46,15 @@ spec:
   selector:
     application: springbootmongo
   ports:
-    - port: 80
-      targetPort: 8080
-      nodePort: 32000
+  - port: 80
+    targetPort: 8080
+    nodePort: 32000
 ---
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: mongo-replicaset
-  namespace: prod
+   name: mongo-replicaset
+   namespace: prod
 spec:
   replicas: 1
   selector:
@@ -67,22 +67,15 @@ spec:
         application: mongo
     spec:
       containers:
-        - name: mongo-container
-          image: mongo
-          ports:
-            - containerPort: 27017
-          env:
-            - name: MONGO_INITDB_ROOT_USERNAME
-              value: production
-            - name: MONGO_INITDB_ROOT_PASSWORD
-              value: production@123
-          volumeMounts:
-            - name: mongovol
-              mountPath: /data/db
-      volumes:
-        - name: mongovol
-          persistentVolumeClaim:
-            claimName: mongo-pvc
+      - name: mongo-container
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: prod
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: prod@123
 ---
 apiVersion: v1
 kind: Service
@@ -94,6 +87,5 @@ spec:
   selector:
     application: mongo
   ports:
-    - port: 27017
-      targetPort: 27017
-
+  - port: 27017
+    targetPort: 27017
